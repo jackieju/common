@@ -83,7 +83,7 @@ def scan_count(dir, r)
       if File.file?(fname)
          p "file  #{fname}"
          fcount +=1 
-         if item =~ /\.(c|cpp|h)$/i      
+         if item =~ /\.(c|cpp|h|hpp)$/i      
              comments,match,code = do_count(fname, r)
              # ret[:line] += code
                 ret[:code] +=  code
