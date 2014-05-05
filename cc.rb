@@ -90,34 +90,32 @@ def scan_count(dir, r)
                 ret[:comment] += comments
                 ret[:match] += match
                 
-                
-
          end
       elsif File.directory?(fname)
           dcount +=1
           p "dir >> #{fname}"
           _ret = scan_count("#{fname}", r)
-          if _ret[:code] > 0
+          if _ret[:tcode] > 0
               ret[:subs][item.to_s] = _ret 
               _ret[:parent] = ret
               
-              ret[:tcode] += _ret[:code]
-              _p = ret
-              while _p[:parent]
-                  _p[:parent][:tcode] += _ret[:code]
-                  _p = _p[:parent]
-                  
-              end
+              ret[:tcode] += _ret[:tcode]
+              # _p = ret
+              # while _p[:parent]
+              #     _p[:parent][:tcode] += _ret[:tcode]
+              #     _p = _p[:parent]
+              #     
+              # end
           end
       end
     end
     
     ret[:tcode] += ret[:code]
-    _p = ret
-    while _p[:parent]
-        _p[:parent][:tcode] += ret[:code]
-        _p = _p[:parent]
-    end
+    # _p = ret
+    # while _p[:parent]
+    #     _p[:parent][:tcode] += ret[:code]
+    #     _p = _p[:parent]
+    # end
     
     p "Directory #{dir}"
     p "#{fcount} file"
@@ -139,7 +137,7 @@ def print_scan_result(_ret, name)
         space   += "    |"
         space2  += "    "
     end
-    s = "#{space}-#{name} ==>file:#{_ret[:fcount]}  code:#{_ret[:code]}"
+    s = "#{space}-#{name} ==>file:#{_ret[:fcount]}  code:#{_ret[:code]}/#{_ret[:tcode]}"
     s += " match:#{_ret[:match]}" if $has_re
     p s
     #p "#{space2}#{_ret[:dcount]} dir"
