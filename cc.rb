@@ -5,7 +5,9 @@ $g_count_comment = 0
 $g_count_files = 0
 $g_match_count = []
 $ref = []
-
+$file_pattern = Regexp.new("\\.(c|cpp|h|hpp)$", true)   
+$file_pattern = Regexp.new("\\.(php)$", true)   
+ 
 def do_count(fname, re = nil)
     
     _count_comment = 0 # comments
@@ -71,9 +73,12 @@ def scan_count(dir, r)
         :comment =>0,
         :match=>0,
         :subs => {},
-        :tcode=>0
+        :tcode=>0,
+        :fcount=>0,
+        :tfcount=>0,
     }
     p "search #{dir}..."
+    p "$file_pattern: #{$file_pattern}"
     fcount = dcount = 0
     Dir.foreach("#{dir}") do |item|
     # Find.find("#{dir}/*") do |item|
@@ -83,7 +88,8 @@ def scan_count(dir, r)
       if File.file?(fname)
          p "file  #{fname}"
          fcount +=1 
-         if item =~ /\.(c|cpp|h|hpp)$/i      
+         if item =~ $file_pattern 
+         #if item =~ /\.(c|cpp|h|hpp)$/i      
              comments,match,code = do_count(fname, r)
              # ret[:line] += code
                 ret[:code] +=  code
@@ -99,6 +105,7 @@ def scan_count(dir, r)
               ret[:subs][item.to_s] = _ret 
               _ret[:parent] = ret
               
+              ret[:tfcount] += _ret[:fcount]
               ret[:tcode] += _ret[:tcode]
               # _p = ret
               # while _p[:parent]
@@ -106,6 +113,7 @@ def scan_count(dir, r)
               #     _p = _p[:parent]
               #     
               # end
+              # 
           end
       end
     end
@@ -122,6 +130,7 @@ def scan_count(dir, r)
     p "#{dcount} directory"
     
     ret[:fcount] = fcount
+    ret[:tfcount] += fcount
     ret[:dcount] = dcount
     
     return ret
@@ -137,7 +146,7 @@ def print_scan_result(_ret, name)
         space   += "    |"
         space2  += "    "
     end
-    s = "#{space}-#{name} ==>file:#{_ret[:fcount]}  code:#{_ret[:code]}/#{_ret[:tcode]}"
+    s = "#{space}-#{name} ==>file:#{_ret[:fcount]}/#{_ret[:tfcount]}   code:#{_ret[:code]}/#{_ret[:tcode]}"
     s += " match:#{_ret[:match]}" if $has_re
     p s
     #p "#{space2}#{_ret[:dcount]} dir"
@@ -168,6 +177,8 @@ if $*.size >0
                 has_re = true
             elsif arg == "-d"
                 search_dir = a
+            elsif arg == "-f"
+                $file_pattern = Regexp.new("\\.(#{a})$", true)  
             end
             arg_wait_for_parse = 0
 
@@ -175,13 +186,17 @@ if $*.size >0
             
         end
         
-        if a == "-e"
+        if a == "-e" # use regexp
             arg = a
             arg_wait_for_parse = 1
             next
         elsif a == "-d"
             arg = a
             arg_wait_for_parse = 1
+        elsif a == "-f"
+            arg = a
+            arg_wait_for_parse = 1
+            next
         end
         
         
@@ -209,9 +224,14 @@ if $*.size >0
     }
 else
     p "no file specified"
-    p "usage: ruby cc.rb <c source file>"
+    p "usage: ruby cc.rb <c source file> <option>"
+    p "  -e <regular express>"
+    p "  -f <regular express for file name>"
+    p "  -d <diretory>"
     p  " example: ruby cc.rb xiaolu.c dak.c"
     p  '           find . -type file -name "*.c" -o -name "*.h" -o -name "*.cpp" |xargs ruby cc.rb'
+    p  '           cc.rb -d . -f js'
+    p  '           cc.rb -d . -f \"js|php|html\"'
     
 end
 # find . -type file -name "*.c" -o -name "*.h" -o -name "*.cpp" |xargs cc.rb
